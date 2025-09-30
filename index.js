@@ -30,8 +30,9 @@ app.post('/generate', async (req, res) => {
       **Constraint:** The total length should be approximately one page (around 500 words). Do not invent technical details. Generate the text now.
     `;
     
-    // 使用 Gemini 模型
-    const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash-latest"});
+    // 【唯一的修改在这里】使用更稳定通用的 gemini-pro 模型
+    const model = genAI.getGenerativeModel({ model: "gemini-pro"});
+    
     const result = await model.generateContent(megaPrompt);
     const response = await result.response;
     const text = response.text();
