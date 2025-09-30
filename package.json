@@ -1,7 +1,20 @@
-"dependencies": {
-  "@google/generative-ai": "^0.15.0",
-  "cors": "^2.8.5",
-  "dotenv": "^16.4.5",
-  "express": "^4.19.2",
-  "openai": "^4.52.7"
+{
+  "name": "grantwriter-backend",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js"
+  },
+  "dependencies": {
+    "@google/generative-ai": "^0.15.0",
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.5",
+    "express": "^4.19.2",
+    "openai": "^4.52.7"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC"
 }
+```    *   *(我不仅加了逗号，还把 `name`, `version` 等其他标准字段也补全了，这样更规范，保证不会再有任何格式问题。)*
