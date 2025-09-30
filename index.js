@@ -1,7 +1,7 @@
 require('dotenv').config();
 const express = require('express');
-const { OpenAI } = require('openai');
 const cors = require('cors');
+const { GoogleGenerativeAI } = require('@google/generative-ai');
 
 const app = express();
 const port = process.env.PORT || 3001;
@@ -9,17 +9,19 @@ const port = process.env.PORT || 3001;
 app.use(cors());
 app.use(express.json());
 
-const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY,
-});
+// 初始化 Google AI
+const genAI = new GoogleGenerativeAI(process.env.GOOGLE_API_KEY);
 
 app.post('/generate', async (req, res) => {
   try {
     const { topic, hypothesis, aim1, aim2 } = req.body;
 
+    // 为 Google AI 准备提示词 (和之前完全一样)
     const megaPrompt = `
       **Role:** You are an expert grant writer with 20 years of experience helping postdocs secure funding from the NIH. You are precise, persuasive, and an expert in biomedical terminology.
-      **Task:** Write a compelling 'Specific Aims' page for an NIH grant proposal based on the user's input. The tone should be confident and scholarly. Structure the output into four distinct paragraphs.
+
+      **Task:** Write a compelling 'Specific Aims' page for an NIH grant proposal based on the user's input. The tone should be confident and scholarly. Structure the output into the following four distinct paragraphs.
+
       **User's Input:**
       - Research Topic: ${topic}
       - Central Hypothesis: ${hypothesis}
@@ -27,16 +29,17 @@ app.post('/generate', async (req, res) => {
       - Specific Aim 2: ${aim2}
       **Constraint:** The total length should be approximately one page (around 500 words). Do not invent technical details. Generate the text now.
     `;
+    
+    // 使用 Gemini 模型
+    const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash-latest"});
+    const result = await model.generateContent(megaPrompt);
+    const response = await result.response;
+    const text = response.text();
 
-    const completion = await openai.chat.completions.create({
-      model: "gpt-3.5-turbo",
-      messages: [{ role: "user", content: megaPrompt }],
-    });
-
-    res.json({ proposal: completion.choices[0].message.content });
+    res.json({ proposal: text });
 
   } catch (error) {
-    console.error("Error generating proposal:", error);
+    console.error("Error generating proposal with Google AI:", error);
     res.status(500).json({ error: "Failed to generate proposal" });
   }
 });
