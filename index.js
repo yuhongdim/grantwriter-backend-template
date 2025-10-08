@@ -1,8 +1,8 @@
 require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
-// 【修改点1】我们额外引入了 API_VERSION
-const { GoogleGenerativeAI, GoogleAIFileManager, API_VERSION } = require('@google/generative-ai');
+// 我们将重新使用 OpenAI 的 SDK，因为它能兼容绝大多数中转服务
+const { OpenAI } = require('openai');
 
 const app = express();
 const port = process.env.PORT || 3001;
@@ -10,8 +10,11 @@ const port = process.env.PORT || 3001;
 app.use(cors());
 app.use(express.json());
 
-// 【修改点2】在初始化时，我们明确告诉它使用 v1 版本
-const genAI = new GoogleGenerativeAI(process.env.GOOGLE_API_KEY, { apiVersion: "v1" });
+// 初始化一个指向中转服务的 OpenAI 客户端
+const client = new OpenAI({
+  apiKey: process.env.FORWARD_API_KEY,      // 使用中转服务的密钥
+  baseURL: process.env.FORWARD_BASE_URL,    // 使用中转服务的地址
+});
 
 app.post('/generate', async (req, res) => {
   try {
@@ -28,16 +31,18 @@ app.post('/generate', async (req, res) => {
       **Constraint:** The total length should be approximately one page (around 500 words). Do not invent technical details. Generate the text now.
     `;
     
-    const model = genAI.getGenerativeModel({ model: "gemini-pro"});
-    
-    const result = await model.generateContent(megaPrompt);
-    const response = await result.response;
-    const text = response.text();
+    // 使用中转服务商提供的模型。绝大多数都支持 gemini-pro
+    // 如果他们提供的名字不同，请在这里修改
+    const completion = await client.chat.completions.create({
+      model: "gemini-pro", 
+      messages: [{ role: "user", content: megaPrompt }],
+    });
 
+    const text = completion.choices[0].message.content;
     res.json({ proposal: text });
 
   } catch (error) {
-    console.error("Error generating proposal with Google AI:", error);
+    console.error("Error generating proposal via Forwarding API:", error);
     res.status(500).json({ error: "Failed to generate proposal" });
   }
 });
