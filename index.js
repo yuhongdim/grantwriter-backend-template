@@ -1,7 +1,8 @@
 require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
-const { GoogleGenerativeAI } = require('@google/generative-ai');
+// 【修改点1】我们额外引入了 API_VERSION
+const { GoogleGenerativeAI, GoogleAIFileManager, API_VERSION } = require('@google/generative-ai');
 
 const app = express();
 const port = process.env.PORT || 3001;
@@ -9,8 +10,8 @@ const port = process.env.PORT || 3001;
 app.use(cors());
 app.use(express.json());
 
-// 初始化 Google AI，确保环境变量名称正确
-const genAI = new GoogleGenerativeAI(process.env.GOOGLE_API_KEY);
+// 【修改点2】在初始化时，我们明确告诉它使用 v1 版本
+const genAI = new GoogleGenerativeAI(process.env.GOOGLE_API_KEY, { apiVersion: "v1" });
 
 app.post('/generate', async (req, res) => {
   try {
@@ -27,7 +28,6 @@ app.post('/generate', async (req, res) => {
       **Constraint:** The total length should be approximately one page (around 500 words). Do not invent technical details. Generate the text now.
     `;
     
-    // 使用最稳定通用的 gemini-pro 模型，避免权限问题
     const model = genAI.getGenerativeModel({ model: "gemini-pro"});
     
     const result = await model.generateContent(megaPrompt);
