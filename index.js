@@ -31,7 +31,7 @@ app.post('/generate', async (req, res) => {
       **Constraint:** The total length should be approximately one page (around 500 words). Do not invent technical details. Generate the text now.
     `;
     
-    // 【唯一的修改在这里】使用性价比最高的 gemini-1.5-flash-latest 模型
+    // 使用性价比最高的 gemini-1.5-flash-latest 模型
     const completion = await client.chat.completions.create({
       model: "gemini-1.5-flash-latest", 
       messages: [{ role: "user", content: megaPrompt }],
